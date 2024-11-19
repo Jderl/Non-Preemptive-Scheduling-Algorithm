@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scheduling Algorithm</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    /* Custom style for modal width */
+    .modal-header {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .modal-title {
+      font-weight: bold;
+    }
+
+    .modal-body {
+      font-family: 'Arial', sans-serif;
+      color: #333;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .modal-body h5 {
+      color: #007bff;
+    }
+
+    .modal-footer {
+      background-color: #f7f7f7;
+    }
+
+    .info-box {
+      background-color: #f9f9f9;
+      border-left: 5px solid #007bff;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .gantt-placeholder {
+      height: 200px;
+      background: #e9ecef;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    .modal-dialog {
+      max-width: 1000px;
+      width: 80%;
+
+    }
+
+    /* Custom height for the modal content area */
+    .modal-body {
+      max-height: 500px;
+      overflow-y: auto;
+      /* Enable scrolling if content exceeds the height */
+    }
+
+    #nonPreemptiveProperties {
+      display: none;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+
+      background-color: #ffffff;
+    }
+
+    .container {
+      font-family: Arial, sans-serif;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+
+    .card {
+      margin-bottom: 15px;
+    }
+
+    #h2 {
+      text-align: center;
+      font-size: 1.8rem;
+      color: #333;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body onload="initializeForm()">
+  <h2 id="h2" class="mt-3">Non Preemptive Scheduling Algorithm</h2>
+  <div class="container mt-3">
+    <div class="row">
+      <!-- Inputs -->
+      <div class="col">
+        <!-- System Overview -->
+        <!-- System Overview Modal -->
+        <div class="modal fade" id="systemOverviewModal" tabindex="-1" aria-labelledby="systemOverviewModalLabel"
+          aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h5 class="modal-title" id="systemOverviewModalLabel">System Overview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <!-- Modal Body -->
+              <div class="modal-body">
+                <h5>About</h5>
+                <p>
+                  This system simulates non-preemptive scheduling algorithms including FCFS (First-Come First-Served),
+                  SJP (Shortest Job First), and NPP (Non-preemptive Priority Scheduling). It computes key performance
+                  metrics like CPU utilization, Gantt charts, turnaround times, and waiting times for each process.
+                </p>
+
+                <h5>How It Works</h5>
+                <p>
+                  The system allows users to input the number of jobs and provides corresponding fields for arrival
+                  times, burst times, and priority values. Based on the chosen scheduling algorithm, the system performs
+                  the following calculations:
+                </p>
+                <ul>
+                  <li><strong>CPU Utilization:</strong> The percentage of time the CPU actively processes tasks, showing
+                    its efficiency.</li>
+                  <li><strong>Turnaround Time:</strong> Total time from arrival to completion.</li>
+                  <li><strong>Waiting Time:</strong> Time a process spends waiting in the ready queue.</li>
+                </ul>
+
+
+                <h5>Visual Results</h5>
+                <p>
+                  The system dynamically generates the following visual results:
+                </p>
+                <ul>
+                  <li><strong>Gantt Chart:</strong> Visualizes the order of process execution.</li>
+                  <li><strong>Order of Processes:</strong> Lists processes based on their execution sequence.</li>
+                  <li><strong>CPU Utilization:</strong>Displays the CPU utilization percentage calculated using the
+                    selected scheduling algorithm</li>
+                  <li><strong>Turnaround and Waiting Times:</strong> Computed and displayed for each process.</li>
+                </ul>
+
+                <h5>Output Guide</h5>
+                <p><i>#1. Input the number of jobs, along with their arrival times and burst times, and choose a
+                    scheduling algorithm.</i> </p>
+                <div style="text-align: center;">
+                  <img src="/revise2/img/Ins1.1.png" class="img-fluid" alt="stp1" width="500" height="300">
+                </div>
+                <p><i>#2. Click the Compute button to generate the results.</i> </p>
+                <div style="text-align: center;">
+                  <img src="/revise2/img/Ins1.2.png" class="img-fluid" alt="stp1" width="500" height="300">
+                </div>
+
+                <h5>Error Hanlding</h5>
+                <p><i>#1. "The number of processes should match the arrival time, burst time, and priority, depending on
+                    the chosen algorithm.</i> </p>
+                <div style="text-align: center;">
+                  <img src="/revise2/img/Ins1.3.png" class="img-fluid" alt="stp1" width="500" height="300">
+                </div>
+              </div>
+              <!-- Modal Footer -->
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Card for Number of Jobs -->
+        <div class="card">
+          <div class="card-body">
+            <!--Number of Jobs -->
+            <div class="form-group">
+              <label for="numJobs">Number of Jobs:</label>
+              <input type="number" id="numJobs" class="form-control" placeholder="Enter number of jobs" min="1"
+                onchange="updateInputFields()" />
+            </div>
+          </div>
+        </div>
+        <!-- Card for Arrival Times -->
+        <div class="card">
+          <div class="card-body">
+            <div class="form-group">
+              <label for="arrivalTimes">Arrival Times (comma or space separated):</label>
+              <input type="text" id="arrivalTimes" class="form-control" placeholder="e.g., 0, 2, 4, 6" disabled />
+            </div>
+
+            <div class="form-group">
+              <label for="burstTimes">Burst Times (comma or space separated):</label>
+              <input type="text" id="burstTimes" class="form-control" placeholder="e.g., 5, 3, 8, 6" disabled />
+            </div>
+          </div>
+        </div>
+        <!-- Card for Non-Preemptive Properties -->
+        <div class="card" id="nonPreemptiveProperties" style="display: none">
+          <div class="card-body">
+            <div class="form-group">
+              <label for="priorityValues">Priority Values (comma or space separated):</label>
+              <input type="text" id="priorityValues" class="form-control" placeholder="e.g., 3, 1, 2" disabled />
+            </div>
+          </div>
+        </div>
+
+        <!-- Card for Scheduling Algorithm -->
+        <div class="card">
+          <div class="card-body">
+            <div class="form-group">
+              <label class="mt-3">Select Scheduling Algorithm:</label><br />
+              <label class="form-check-label">
+                <input type="radio" name="scheduling" value="fcfs" checked onclick="toggleNonPreemptiveProperties()" />
+                1. First Come First Serve (FCFS)
+                <!-- Put modal  -->
+                <!-- Button that triggers the modal (Eye Icon) -->
+                <button type="button" class="btn " data-bs-toggle="modal" data-bs-target="#exampleModal">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+                <!-- Modal Structure -->
+                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                  aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <!-- Modal Header -->
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">First-Come, First-Served (FCFS) Scheduling</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <!-- Modal Body -->
+                      <div class="modal-body">
+                        <h5>What is FCFS?</h5>
+                        <p>First-Come, First-Served (FCFS) is a scheduling algorithm that operates based on the order in
+                          which jobs arrive in the queue. It processes the jobs in the order they arrive, without
+                          preemption.</p>
+
+                        <h6>Steps in FCFS:</h6>
+                        <ul>
+                          <li>Jobs are processed in the order of their arrival time.</li>
+                          <li>The job that arrives first will be executed first.</li>
+                          <li>No job is interrupted once it starts execution.</li>
+                        </ul>
+
+                        <h6>Advantages of FCFS:</h6>
+                        <ul>
+                          <li>Simplicity: It is easy to implement and understand.</li>
+                          <li>Fairness: Every job gets a chance based on its arrival time.</li>
+                        </ul>
+
+                        <h6>Disadvantages of FCFS:</h6>
+                        <ul>
+                          <li>Potential for poor performance in terms of waiting time, especially when short jobs arrive
+                            after long jobs.</li>
+                          <li>It does not take job priority or burst time into consideration.</li>
+                        </ul>
+
+
+                      </div>
+                      <!-- Modal Footer -->
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Done</button>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </label><br />
+              <label class="form-check-label">
+                <input type="radio" name="scheduling" value="sjf" onclick="toggleNonPreemptiveProperties()" />
+                2. Shortest Job First (SJF)
+                <!-- Put modal  -->
+                <!-- Button that triggers the modal (Eye Icon for SJF) -->
+                <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#exampleModalSJF">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+
+                <!-- Modal Structure for SJF -->
+                <div class="modal fade" id="exampleModalSJF" tabindex="-1" aria-labelledby="exampleModalLabelSJF"
+                  aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <!-- Modal Header -->
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabelSJF">Shortest Job First (SJF) Scheduling</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <!-- Modal Body -->
+                      <div class="modal-body">
+                        <h5>What is SJF?</h5>
+                        <p>Shortest Job First (SJF) is a scheduling algorithm that selects the job with the shortest
+                          burst time to execute first. The algorithm works under the assumption that the burst times of
+                          the jobs are known in advance.</p>
+
+                        <h6>Steps in SJF:</h6>
+                        <ul>
+                          <li>Jobs are processed based on their burst times, with the shortest job processed first.</li>
+                          <li>If two jobs have the same burst time, the job that arrived first is selected.</li>
+                          <li>SJF can be preemptive or non-preemptive, but in non-preemptive SJF, once a job starts, it
+                            runs to completion.</li>
+                        </ul>
+
+                        <h6>Advantages of SJF:</h6>
+                        <ul>
+                          <li>Minimizes the average waiting time for a set of jobs.</li>
+                          <li>Efficient in terms of minimizing turnaround time when burst times are known.</li>
+                        </ul>
+
+                        <h6>Disadvantages of SJF:</h6>
+                        <ul>
+                          <li>It is difficult to know the burst time of jobs in advance.</li>
+                          <li>It can lead to starvation, as longer jobs may have to wait indefinitely if shorter jobs
+                            keep coming.</li>
+                        </ul>
+
+                        <!-- <h6>SJF Example:</h6>
+                        <p>The image below demonstrates the process of Shortest Job First (SJF) scheduling.</p> -->
+
+                        <!-- Image (replace with actual SJF diagram/image URL) -->
+                        <!-- <img src="https://via.placeholder.com/400x200?text=SJF+Scheduling+Example" class="img-fluid"
+                          alt="SJF Scheduling Example"> -->
+
+                      </div>
+                      <!-- Modal Footer -->
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Done</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </label><br />
+              <label class="form-check-label">
+                <input type="radio" name="scheduling" value="npp" onclick="toggleNonPreemptiveProperties()" />
+                3. Non-Preemptive Priority
+                <!-- Put modal  -->
+                <!-- Button that triggers the modal (Eye Icon for NPP) -->
+                <button type="button" class="btn " data-bs-toggle="modal" data-bs-target="#exampleModalNPP">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+
+                <!-- Modal Structure for NPP -->
+                <div class="modal fade" id="exampleModalNPP" tabindex="-1" aria-labelledby="exampleModalLabelNPP"
+                  aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <!-- Modal Header -->
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabelNPP">Non-Preemptive Priority (NPP) Scheduling</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <!-- Modal Body -->
+                      <div class="modal-body">
+                        <h5>What is NPP?</h5>
+                        <p>Non-Preemptive Priority (NPP) Scheduling is a CPU scheduling algorithm where each process is
+                          assigned a priority value. The CPU selects the process with the highest priority (lowest
+                          priority value) to execute next. Once a process starts, it runs to completion without being
+                          interrupted.</p>
+
+                        <h6>Steps in NPP:</h6>
+                        <ul>
+                          <li>Processes are scheduled based on their priority values (lower value means higher
+                            priority).</li>
+                          <li>If two processes have the same priority, the one that arrived first is selected.</li>
+                          <li>Once a process starts execution, it runs to completion without preemption.</li>
+                        </ul>
+
+                        <h6>Advantages of NPP:</h6>
+                        <ul>
+                          <li>Simple to implement and effective for priority-based scheduling.</li>
+                          <li>Ensures that the highest priority jobs are executed first.</li>
+                        </ul>
+
+                        <h6>Disadvantages of NPP:</h6>
+                        <ul>
+                          <li>Can lead to starvation, as lower priority jobs may not get executed if higher priority
+                            jobs keep arriving.</li>
+                          <li>It does not allow preemption, which can be inefficient in some situations.</li>
+                        </ul>
+
+                        <!-- <h6>NPP Example:</h6>
+                        <p>The image below demonstrates the process of Non-Preemptive Priority (NPP) scheduling.</p> -->
+
+                        <!-- Image (replace with actual NPP diagram/image URL) -->
+                        <!-- <img src="https://via.placeholder.com/400x200?text=NPP+Scheduling+Example" class="img-fluid"
+                          alt="NPP Scheduling Example"> -->
+
+                      </div>
+                      <!-- Modal Footer -->
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Done</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </label>
+              <hr />
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+              <button class="btn btn-primary" onclick="calculateScheduling()">Calculate</button>
+            </div>
+
+            <br />
+          </div>
+        </div>
+
+
+      </div>
+
+      <!-- Output -->
+      <div class="col">
+        <div id="ganttChart" class="mb-5" style="display: none">
+          <h3>Gantt Chart</h3>
+          <div class="card">
+            <div class="card-body">
+              <table class="table">
+                <thead>
+                  <tr id="ganttHeaderRow" class="table-success"></tr>
+                </thead>
+                <tbody>
+                  <tr id="ganttTimeRow"></tr>
+                </tbody>
+              </table>
+              <hr />
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Result Chart -->
+        <div id="results" class="mt-4" style="display: none">
+          <h3>Order of Process</h3>
+          <div class="card">
+            <div class="card-body">
+              <table class="table table-striped">
+                <thead>
+                  <tr class="table-info">
+                    <th>Process</th>
+                    <th>Arrival Time</th>
+                    <th>Burst Time</th>
+                    <th>Finish Time</th>
+                  </tr>
+                </thead>
+                <tbody id="resultsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- CPU Utilization Card -->
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex flex-column">
+              <!-- CPU Utilization Label -->
+              <label class="form-label fw-bold text-muted text-end" id="cpuUtilization"
+                style="font-size: 2rem; color: #555;">
+                CPU UTILIZATION: <span id="cpuPercentage" style="color: crimson;">0%</span>
+              </label>
+
+              <!-- CPU Utilization Details -->
+              <label class="form-label text-muted text-end" id="cpuUtilizationDetails" style="font-size: 1rem;">
+                <button class="btn btn-link p-0 m-0" type="button" data-bs-toggle="modal"
+                  data-bs-target="#cpuUtilizationModal">
+                  Show Formula Details..
+                </button>
+              </label>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Structure for CPU Utilization -->
+        <div class="modal fade" id="cpuUtilizationModal" tabindex="-1" aria-labelledby="cpuUtilizationModalLabel"
+          aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h5 class="modal-title" id="cpuUtilizationModalLabel">CPU Utilization Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+
+              <!-- Modal Body -->
+              <div class="modal-body" style="font-family: 'Arial', sans-serif; color: #333; line-height: 1.6;">
+                <h5 class="modal-title" style="font-size: 1.25rem; font-weight: bold; color: #444;">How CPU Utilization
+                  is Computed</h5>
+
+                <p>
+                  <strong>What is CPU Utilization?</strong><br />
+                  CPU utilization is a measure of how much processing power is being used by the system's CPU at any
+                  given time.
+                  Lower values indicate underutilization, while higher values suggest that the CPU is fully loaded or
+                  under heavy usage.
+                </p>
+
+                <p>
+                  <strong>Formula for CPU Utilization:</strong><br />
+                  <div
+                    style="background-color: #f4f4f4; padding: 10px; border-left: 5px solid #007bff; font-size: 1.1rem; font-family: 'Courier New', monospace; color: #555;">
+                    <code>CPU Utilization = (Total CPU Time - Idle Time) / Total CPU Time</code>
+                  </div>
+                </p>
+
+                <p>
+                  <strong>Explanation:</strong><br />
+                  <ul style="line-height: 1.8;">
+                    <li><strong>Total CPU Time</strong>: The total time the CPU has spent performing tasks (user and
+                      system processes).</li>
+                    <li><strong>Idle Time</strong>: The time the CPU has spent without performing any tasks.</li>
+                  </ul>
+                </p>
+
+                <p>
+                  Detailed breakdowns of processes and tasks can show the distribution of CPU resources among different
+                  operations.
+                </p>
+              </div>
+
+              <!-- Modal Footer -->
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Done</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <div class="container mt-2">
+    <div class="row">
+      <div class="col">
+        <!-- Turnaround Time Table -->
+        <div id="turnaroundTimeTable" class="mt-4" style="display: none">
+          <h3>Turnaround Times</h3>
+          <div class="card">
+            <div class="card-body">
+              <table class="table table-striped">
+                <thead>
+                  <tr class="table-info">
+                    <th>Process</th>
+                    <th>Finish Time - Arrival Time =</th>
+                    <th>Turnaround Time</th>
+                  </tr>
+                </thead>
+                <tbody id="turnaroundTimeBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Turnaround Time -->
+          <button class="btn btn-link m-2" type="button" data-bs-toggle="modal"
+            data-bs-target="#exampleModalTurnaroundTime" aria-controls="exampleModalTurnaroundTime">
+            Learn More...
+          </button>
+
+          <!-- Modal structure with a scrollable content area -->
+          <!-- Turnaround Time Modal Structure -->
+          <div class="modal fade" id="exampleModalTurnaroundTime" tabindex="-1"
+            aria-labelledby="exampleModalLabelTurnaroundTime" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabelTurnaroundTime">Turnaround Time Details</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="font-family: 'Arial', sans-serif; color: #333; line-height: 1.6;">
+                  <h5 class="modal-title" style="font-size: 1.25rem; font-weight: bold; color: #444;">What is Turnaround
+                    Time?</h5>
+                  <p>
+                    Turnaround Time is the total time taken by a process to complete, from the moment it arrives in the
+                    system to the moment it finishes its execution.
+                  </p>
+                  <p>
+                    <strong>Formula for Turnaround Time:</strong><br />
+                    <div
+                      style="background-color: #f4f4f4; padding: 10px; border-left: 5px solid #007bff; font-size: 1.1rem; font-family: 'Courier New', monospace; color: #555;">
+                      <code>Turnaround Time = Finish Time - Arrival Time</code>
+                    </div>
+                  </p>
+                  <p>
+                    <strong>Explanation:</strong><br />
+                    The turnaround time measures the amount of time each process spends in the system, including both
+                    the time spent waiting in the queue and the time spent executing on the CPU.
+                  </p>
+                  <ul style="line-height: 1.8;">
+                    <li><strong>Finish Time</strong>: The time at which the process completes execution.</li>
+                    <li><strong>Arrival Time</strong>: The time at which the process first arrives in the system.</li>
+                  </ul>
+                  <p>
+                    The lower the turnaround time, the better the scheduling algorithm, as it suggests that processes
+                    are being completed quickly. However, it is important to balance turnaround time with other factors
+                    such as waiting time and CPU utilization.
+                  </p>
+                  <p>
+                    Note that processes with longer burst times may have higher turnaround times, depending on their
+                    arrival times and the algorithm used.
+                  </p>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Done</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+
+        <hr />
+      </div>
+    </div>
+    <div class="container mt-2 mb-5">
+      <div class="row">
+        <div class="col">
+          <!-- Waiting Time Table -->
+          <div id="waitingTimeTable" class="mt-4" style="display: none">
+            <div class="card">
+              <div class="card-body">
+                <h3>Waiting Times</h3>
+                <div class="card">
+                  <div class="card-body">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr class="table-info">
+                          <th>Process</th>
+                          <th>Turnaround Time - Burst Time =</th>
+                          <th>Waiting Time</th>
+                        </tr>
+                      </thead>
+                      <tbody id="waitingTimeBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Waiting Time -->
+            <button class="btn btn-link m-2" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal1"
+              aria-controls="exampleModal3">
+              Learn More...
+            </button>
+            <!-- Modal structure with a scrollable content area -->
+            <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel"
+              aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Waiting Times</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body" style="font-family: 'Arial', sans-serif; color: #333; line-height: 1.6;">
+                    <h5 style="font-size: 1.25rem; font-weight: bold; color: #444;">What is Waiting Time?</h5>
+                    <p>
+                      Waiting Time is the total time a process spends waiting in the ready queue before it gets executed
+                      by the CPU.
+                      It is a key factor in measuring the efficiency of scheduling algorithms.
+                    </p>
+                    <h6 style="font-weight: bold; color: #555;">Formula for Waiting Time:</h6>
+                    <div
+                      style="background-color: #f4f4f4; padding: 10px; border-left: 5px solid #007bff; font-size: 1.1rem; font-family: 'Courier New', monospace; color: #555;">
+                      <code>Waiting Time = Turnaround Time - Burst Time</code>
+                    </div>
+                    <p>
+                      In other words, the waiting time is calculated by subtracting the Burst Time (the time a process
+                      takes to complete execution) from the Turnaround Time (the total time a process spends in the
+                      system).
+                    </p>
+                    <ul style="line-height: 1.8;">
+                      <li><strong>Turnaround Time</strong>: The total time taken from the arrival of the process to its
+                        completion.</li>
+                      <li><strong>Burst Time</strong>: The amount of time the process requires on the CPU for execution.
+                      </li>
+                    </ul>
+                    <p>
+                      The shorter the waiting time, the better the scheduling algorithm. However, waiting time should
+                      also be balanced with other factors like turnaround time and CPU utilization to ensure efficient
+                      process management.
+                    </p>
+                  </div>
+
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container my-5">
+    <footer style="background-color: #0000fa28; color: #f4f4f4;">
+      <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2); ">
+        JDERL PRESENTS ©2024
+      </div>
+      <div class="container p-4">
+        <div class="row">
+          <div class="col-lg-6 col-md-12 mb-4">
+            <h5 class="mb-3" style="letter-spacing: 2px; color: #818963;">Name: </h5>
+            <p style="color: #333;">
+              DERLA JULIUS A.
+            </p>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-4">
+            <h5 class="mb-3" style="letter-spacing: 2px; color: #818963;">Links </h5>
+            <ul class="list-unstyled mb-0">
+              <li class="mb-1">
+                <a href="https://github.com/Jderl/OSNET.git!" style="color: #4f4f4f;">SOURCE CODE</a>
+              </li>
+
+            </ul>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-4">
+            <h5 class="mb-1" style="letter-spacing: 2px; color: #818963;">About</h5>
+            <table class="table" style="color: #4f4f4f; border-color: #666;">
+              <tbody>
+                <tr>
+                  <td>Section:</td>
+                  <td>MIT-1A</td>
+                </tr>
+                <tr>
+                  <td>Course Code:</td>
+                  <td>MIT 501</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+  <script src="index.js"></script>
+
+  <script>
+    window.onload = function () {
+      var myModal = new bootstrap.Modal(document.getElementById('systemOverviewModal'));
+      myModal.show();
+    };
+    // Function to toggle the visibility of the Non-Preemptive Priority properties
+    function toggleNonPreemptiveProperties() {
+      const propertiesDiv = document.getElementById("nonPreemptiveProperties");
+      const selectedScheduling = document.querySelector('input[name="scheduling"]:checked').value;
+
+      // Show or hide the Non-Preemptive Priority properties based on selected algorithm
+      propertiesDiv.style.display = selectedScheduling === "npp" ? "block" : "none";
+
+      // Enable or disable the priority values based on the selected scheduling algorithm
+      const priorityInput = document.getElementById("priorityValues");
+      priorityInput.disabled = selectedScheduling !== "npp" || !isValidNumJobs();
+    }
+
+    // Initialize the form based on the selected scheduling algorithm
+    function initializeForm() {
+      // Reset values and placeholders
+      resetForm();
+
+      // Set the display for Non-Preemptive Priority properties based on selected scheduling algorithm
+      toggleNonPreemptiveProperties();
+
+      // Update the input fields based on the numJobs value
+      updateInputFields();
+    }
+
+    // Function to reset form fields
+    function resetForm() {
+      document.getElementById("numJobs").value = "";
+      document.getElementById("arrivalTimes").value = "";
+      document.getElementById("burstTimes").value = "";
+      document.getElementById("priorityValues").value = "";
+
+      document.getElementById("arrivalTimes").disabled = true;
+      document.getElementById("burstTimes").disabled = true;
+      document.getElementById("priorityValues").disabled = true;
+    }
+
+    // Function to update input fields dynamically based on the number of jobs
+    function updateInputFields() {
+      const numJobs = parseInt(document.getElementById("numJobs").value, 10);
+
+      // Validate the number of jobs (must be a positive integer)
+      if (isNaN(numJobs) || numJobs < 1 || !Number.isInteger(numJobs)) {
+        showAlert("Please enter a valid number of jobs (minimum 1).", "danger");
+        return;
+      }
+
+      // Enable arrivalTimes and burstTimes fields
+      document.getElementById("arrivalTimes").disabled = false;
+      document.getElementById("burstTimes").disabled = false;
+
+      // Enable priorityValues if "npp" is selected, else disable it
+      const selectedScheduling = document.querySelector('input[name="scheduling"]:checked').value;
+      const priorityInput = document.getElementById("priorityValues");
+
+      // Only enable priorityValues if "npp" is selected and the number of jobs is valid
+      if (selectedScheduling === "npp" && isValidNumJobs()) {
+        priorityInput.disabled = false;
+      } else {
+        priorityInput.disabled = true;
+      }
+
+      // Update placeholders based on the number of jobs
+      document.getElementById("arrivalTimes").placeholder = `Enter ${numJobs} arrival times (comma-separated)`;
+      document.getElementById("burstTimes").placeholder = `Enter ${numJobs} burst times (comma-separated)`;
+      document.getElementById("priorityValues").placeholder = selectedScheduling === "npp" ?
+        `Enter ${numJobs} priority values (comma-separated)` :
+        `Enter ${numJobs} priority values (comma-separated)`;
+    }
+
+    // Helper function to check if the numJobs is valid
+    function isValidNumJobs() {
+      const numJobs = parseInt(document.getElementById("numJobs").value, 10);
+      return !isNaN(numJobs) && numJobs >= 1 && Number.isInteger(numJobs);
+    }
+
+    // Function to show alerts (for invalid inputs)
+    function showToast(message, type) {
+      // Create the toast container if it doesn't exist yet
+      let toastContainer = document.getElementById('toastContainer');
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.classList.add('toast-container', 'position-fixed', 'top-0', 'end-0', 'p-3');
+        document.body.appendChild(toastContainer);
+      }
+
+      // Create the toast element
+      const toastDiv = document.createElement('div');
+      toastDiv.classList.add('toast', `bg-${type}`, 'align-items-center', 'text-white', 'm-2');
+      toastDiv.setAttribute('role', 'alert');
+      toastDiv.setAttribute('aria-live', 'assertive');
+      toastDiv.setAttribute('aria-atomic', 'true');
+
+      // Add the toast header and body
+      toastDiv.innerHTML = `
+    <div class="toast-header">
+      <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+      <small>Just Now</small>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      ${message}
+    </div>
+  `;
+
+      // Append the toast to the container
+      toastContainer.appendChild(toastDiv);
+
+      // Initialize and show the toast
+      const toast = new bootstrap.Toast(toastDiv);
+      toast.show();
+
+      // Remove the toast after 3 seconds
+      setTimeout(() => {
+        toastDiv.remove();
+      }, 3000);
+    }
+
+    // Function to validate the form before submission
+    function validateForm() {
+      const selectedScheduling = document.querySelector('input[name="scheduling"]:checked').value;
+
+      // If "npp" is selected and priorityValues is empty, show error
+      if (selectedScheduling === "npp") {
+        const priorityValues = document.getElementById("priorityValues").value.trim();
+        if (priorityValues === "") {
+          showToast("Priority values are required for Non-Preemptive Priority scheduling.", "danger");
+          return false; // Prevent form submission
+        }
+      }
+      return true; // Allow form submission
+    }
+  </script>
+</body>
+
+</html>
